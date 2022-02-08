@@ -1,43 +1,111 @@
 import 'package:beacon/locator.dart';
-import 'package:beacon/models/landmarks/landmark.dart';
 import 'package:beacon/services/validators.dart';
 import 'package:beacon/components/hike_button.dart';
 import 'package:beacon/utilities/constants.dart';
 import 'package:beacon/view_model/home_view_model.dart';
 import 'package:duration_picker/duration_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:sizer/sizer.dart';
 
 class CreateJoinBeaconDialog {
   static Future createHikeDialog(BuildContext context, HomeViewModel model) {
+    bool isSmallSized = MediaQuery.of(context).size.height < 800;
     model.resultingDuration = Duration(minutes: 30);
     model.durationController = new TextEditingController();
+    model.startsAtDate = new TextEditingController();
+    model.startsAtTime = new TextEditingController();
     return showDialog(
-        context: context,
-        builder: (context) => Dialog(
-              child: Form(
-                key: model.formKeyCreate,
-                child: Container(
-                  height: 325,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 16),
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                          child: Padding(
-                            padding: const EdgeInsets.all(4.0),
+      context: context,
+      builder: (context) => GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: SingleChildScrollView(
+            child: Form(
+              key: model.formKeyCreate,
+              child: Container(
+                height: isSmallSized ? 75.h : 65.h,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                        height: isSmallSized ? 14.h : 12.h,
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: TextFormField(
+                            style: TextStyle(fontSize: 22.0),
+                            validator: (value) =>
+                                Validator.validateBeaconTitle(value),
+                            onChanged: (name) {
+                              model.title = name;
+                            },
+                            decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: 'Enter Title Here',
+                                labelStyle: TextStyle(
+                                    fontSize: labelsize, color: kYellow),
+                                hintStyle: TextStyle(
+                                    fontSize: hintsize, color: hintColor),
+                                labelText: 'Title',
+                                alignLabelWithHint: true,
+                                floatingLabelBehavior:
+                                    FloatingLabelBehavior.always,
+                                focusedBorder: InputBorder.none,
+                                enabledBorder: InputBorder.none),
+                          ),
+                        ),
+                        color: kLightBlue,
+                      ),
+                      SizedBox(
+                        height: 2.h,
+                      ),
+                      Container(
+                        height: isSmallSized ? 12.h : 10.h,
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: InkWell(
+                            onTap: () async {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              model.startingdate = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime(2100),
+                                builder: (context, child) => Theme(
+                                    data: ThemeData().copyWith(
+                                      textTheme: Theme.of(context).textTheme,
+                                      colorScheme: ColorScheme.light(
+                                        primary: kBlue,
+                                        onPrimary: Colors.white,
+                                        surface: kBlue,
+                                      ),
+                                    ),
+                                    child: child),
+                              );
+                              model.startsAtDate.text = model.startingdate
+                                  .toString()
+                                  .substring(0, 10);
+                            },
                             child: TextFormField(
-                              validator: (value) =>
-                                  Validator.validateBeaconTitle(value),
-                              onChanged: (name) {
-                                model.title = name;
+                              enabled: false,
+                              controller: model.startsAtDate,
+                              onChanged: (value) {
+                                model.startsAtDate.text = model.startingdate
+                                    .toString()
+                                    .substring(0, 10);
                               },
                               decoration: InputDecoration(
-                                  hintText: 'Title Here',
-                                  labelStyle:
-                                      TextStyle(fontSize: 18, color: kBlack),
-                                  labelText: 'Title',
+                                  border: InputBorder.none,
+                                  hintText: 'Choose Start Date',
+                                  labelStyle: TextStyle(
+                                      fontSize: labelsize, color: kYellow),
+                                  hintStyle: TextStyle(
+                                      fontSize: hintsize, color: hintColor),
+                                  labelText: 'Start Date',
                                   alignLabelWithHint: true,
                                   floatingLabelBehavior:
                                       FloatingLabelBehavior.always,
@@ -45,190 +113,246 @@ class CreateJoinBeaconDialog {
                                   enabledBorder: InputBorder.none),
                             ),
                           ),
-                          color: kLightBlue,
                         ),
-                        SizedBox(
-                          height: 30,
+                        color: kLightBlue,
+                      ),
+                      SizedBox(
+                        height: 2.h,
+                      ),
+                      Container(
+                        height: isSmallSized ? 12.h : 10.h,
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: InkWell(
+                            onTap: () async {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              model.startingTime = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.now(),
+                                builder: (context, child) {
+                                  return Theme(
+                                    data: ThemeData(
+                                      textTheme: Theme.of(context).textTheme,
+                                      timePickerTheme: TimePickerThemeData(
+                                        dialHandColor: kBlue,
+                                        dayPeriodTextColor: kBlue,
+                                        hourMinuteTextColor: kBlue,
+                                        helpTextStyle: TextStyle(
+                                          fontFamily: 'FuturaBold',
+                                          fontSize: 15.0,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        hourMinuteTextStyle: TextStyle(
+                                          fontFamily: 'FuturaBold',
+                                          fontSize: 40.0,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        dayPeriodTextStyle: TextStyle(
+                                          fontFamily: 'FuturaBold',
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    // This will change to light theme.
+                                    child: child,
+                                  );
+                                },
+                              );
+                              model.startsAtTime.text = model.startingTime
+                                  .toString()
+                                  .substring(10, 15);
+                            },
+                            child: TextFormField(
+                              enabled: false,
+                              controller: model.startsAtTime,
+                              onChanged: (value) {
+                                model.startsAtTime.text = model.startingTime
+                                    .toString()
+                                    .substring(10, 15);
+                              },
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                alignLabelWithHint: true,
+                                errorStyle: TextStyle(color: Colors.red[800]),
+                                floatingLabelBehavior:
+                                    FloatingLabelBehavior.always,
+                                labelText: 'Start Time',
+                                labelStyle: TextStyle(
+                                    fontSize: labelsize, color: kYellow),
+                                hintStyle: TextStyle(
+                                    fontSize: hintsize, color: hintColor),
+                                hintText: 'Choose start time',
+                                focusedBorder: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                              ),
+                            ),
+                          ),
                         ),
-                        Container(
-                          child: Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: InkWell(
-                              onTap: () async {
-                                model.resultingDuration =
-                                    await showDurationPicker(
-                                  context: context,
-                                  initialTime: model.resultingDuration != null
-                                      ? model.resultingDuration
-                                      : Duration(minutes: 30),
-                                );
+                        color: kLightBlue,
+                      ),
+                      SizedBox(
+                        height: 2.h,
+                      ),
+                      Container(
+                        height: isSmallSized ? 14.h : 12.h,
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: InkWell(
+                            onTap: () async {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              model.resultingDuration =
+                                  await showDurationPicker(
+                                context: context,
+                                initialTime: model.resultingDuration != null
+                                    ? model.resultingDuration
+                                    : Duration(minutes: 30),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5.0),
+                                ),
+                              );
+                              model.durationController.text = model
+                                  .resultingDuration
+                                  .toString()
+                                  .substring(0, 8);
+                            },
+                            child: TextFormField(
+                              enabled: false,
+                              controller: model.durationController,
+                              onChanged: (value) {
                                 model.durationController.text = model
                                     .resultingDuration
                                     .toString()
                                     .substring(0, 8);
                               },
-                              child: TextFormField(
-                                enabled: false,
-                                controller: model.durationController,
-                                onChanged: (value) {
-                                  model.durationController.text = model
-                                      .resultingDuration
-                                      .toString()
-                                      .substring(0, 8);
-                                },
-                                validator: (value) =>
-                                    Validator.validateDuration(
-                                        value.toString()),
-                                decoration: InputDecoration(
-                                    alignLabelWithHint: true,
-                                    errorStyle:
-                                        TextStyle(color: Colors.red[800]),
-                                    floatingLabelBehavior:
-                                        FloatingLabelBehavior.always,
-                                    labelText: 'Duration',
-                                    labelStyle:
-                                        TextStyle(fontSize: 18, color: kBlack),
-                                    hintText:
-                                        'How long should beacon last for?',
-                                    focusedBorder: InputBorder.none,
-                                    enabledBorder: InputBorder.none),
-                              ),
+                              validator: (value) =>
+                                  Validator.validateDuration(value.toString()),
+                              decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  alignLabelWithHint: true,
+                                  errorStyle: TextStyle(color: Colors.red[800]),
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.always,
+                                  labelText: 'Duration',
+                                  labelStyle: TextStyle(
+                                      fontSize: labelsize, color: kYellow),
+                                  hintStyle: TextStyle(
+                                      fontSize: hintsize, color: hintColor),
+                                  hintText: 'Enter duration of hike',
+                                  focusedBorder: InputBorder.none,
+                                  enabledBorder: InputBorder.none),
                             ),
                           ),
-                          color: kLightBlue,
                         ),
-                        SizedBox(
-                          height: 30,
-                        ),
-                        Flexible(
-                          flex: 2,
-                          child: HikeButton(
-                              buttonWidth: 20,
-                              buttonHeight: 20,
-                              text: 'Create',
-                              textColor: Colors.white,
-                              buttonColor: kYellow,
-                              onTap: () {
-                                // navigationService.pop();
-                                model.createHikeRoom();
-                              }),
-                        ),
-                      ],
-                    ),
+                        color: kLightBlue,
+                      ),
+                      SizedBox(
+                        height: 2.h,
+                      ),
+                      Flexible(
+                        flex: 2,
+                        child: HikeButton(
+                            text: 'Create',
+                            textSize: 18.0,
+                            textColor: Colors.white,
+                            buttonColor: kYellow,
+                            onTap: () {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              // navigationService.pop();
+                              if (model.startingdate == null ||
+                                  model.startingTime == null) {
+                                navigationService
+                                    .showSnackBar("Enter date and time");
+                                return;
+                              }
+                              model.startsAt = DateTime(
+                                model.startingdate.year,
+                                model.startingdate.month,
+                                model.startingdate.day,
+                                model.startingTime.hour,
+                                model.startingTime.minute,
+                              );
+                              // localNotif.scheduleNotification();
+                              if (model.startsAt.isBefore(DateTime.now())) {
+                                navigationService.showSnackBar(
+                                    "Enter a valid date and time!!");
+                                return;
+                              }
+                              model.createHikeRoom();
+                            }),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ));
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   static Future joinBeaconDialog(BuildContext context, HomeViewModel model) {
-    return showDialog(
-        context: context,
-        builder: (context) => Dialog(
-              child: Form(
-                key: model.formKeyJoin,
-                child: Container(
-                  height: 250,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 16),
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                          child: Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: TextFormField(
-                              validator: (value) =>
-                                  Validator.validatePasskey(value),
-                              onChanged: (key) {
-                                model.enteredPasskey = key;
-                              },
-                              decoration: InputDecoration(
-                                hintText: 'Passkey Here',
-                                hintStyle:
-                                    TextStyle(fontSize: 20, color: kBlack),
-                                labelText: 'Passkey',
-                                labelStyle:
-                                    TextStyle(fontSize: 14, color: kYellow),
-                              ),
-                            ),
-                          ),
-                          color: kLightBlue,
-                        ),
-                        SizedBox(
-                          height: 30,
-                        ),
-                        Flexible(
-                          child: HikeButton(
-                              buttonWidth: 48,
-                              text: 'Validate',
-                              textColor: Colors.white,
-                              buttonColor: kYellow,
-                              onTap: () {
-                                navigationService.pop();
-                                model.joinHikeRoom();
-                              }),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ));
-  }
-
-  static Future<Landmark> addLandmarkDialog(
-      BuildContext context, LatLng loc, String id) {
-    String title;
+    bool isSmallSized = MediaQuery.of(context).size.height < 800;
     return showDialog(
       context: context,
       builder: (context) => Dialog(
-        child: Container(
-          height: 250,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            child: Column(
-              children: <Widget>[
-                Container(
-                  height: 100,
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: TextField(
-                      onChanged: (key) {
-                        title = key;
-                      },
-                      decoration: InputDecoration(
-                        alignLabelWithHint: true,
-                        floatingLabelBehavior: FloatingLabelBehavior.always,
-                        hintText: 'Add title for the landmark',
-                        hintStyle: TextStyle(fontSize: 15, color: kBlack),
-                        labelText: 'Title',
-                        labelStyle: TextStyle(fontSize: 20, color: kYellow),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Form(
+          key: model.formKeyJoin,
+          child: Container(
+            height: isSmallSized ? 30.h : 25.h,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    height: isSmallSized ? 14.h : 12.h,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        keyboardType: TextInputType.text,
+                        textCapitalization: TextCapitalization.characters,
+                        style: TextStyle(fontSize: 22.0),
+                        validator: (value) => Validator.validatePasskey(value),
+                        onChanged: (key) {
+                          model.enteredPasskey = key.toUpperCase();
+                        },
+                        decoration: InputDecoration(
+                          alignLabelWithHint: true,
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                          hintText: 'Enter Passkey Here',
+                          hintStyle:
+                              TextStyle(fontSize: hintsize, color: hintColor),
+                          labelText: 'Passkey',
+                          labelStyle:
+                              TextStyle(fontSize: labelsize, color: kYellow),
+                          border: InputBorder.none,
+                        ),
                       ),
                     ),
+                    color: kLightBlue,
                   ),
-                  color: kLightBlue,
-                ),
-                SizedBox(
-                  height: 30,
-                ),
-                Flexible(
-                  child: HikeButton(
-                      buttonWidth: 25,
-                      text: 'Create Landmark',
+                  SizedBox(
+                    height: 2.h,
+                  ),
+                  Flexible(
+                    child: HikeButton(
+                      text: 'Validate',
+                      textSize: 18.0,
                       textColor: Colors.white,
                       buttonColor: kYellow,
-                      onTap: () async {
-                        navigationService.pop();
-                        await databaseFunctions.init();
-                        await databaseFunctions
-                            .createLandmark(title, loc, id)
-                            .then((value) {
-                          return value;
-                        });
-                      }),
-                ),
-              ],
+                      onTap: () {
+                        // navigationService.pop();
+                        model.joinHikeRoom();
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -16,8 +16,8 @@ class HikeButton extends StatelessWidget {
       this.buttonColor = kYellow,
       this.text,
       this.textColor = Colors.white,
-      this.buttonWidth = 32,
-      this.buttonHeight = 32,
+      this.buttonWidth = optbwidth,
+      this.buttonHeight = optbheight,
       this.textSize = 18});
 
   @override
